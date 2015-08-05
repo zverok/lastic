@@ -12,6 +12,17 @@ module Lastic
 
     protected
 
+    def coerce(other)
+      case other
+      when ::Hash
+        Clause.coerce(other)
+      when Clause
+        other
+      else
+        fail(ArgumentError, "Can't coerce #{other.class} to query clause")
+      end
+    end
+
     def name
       self.class.name.sub(/.+::/, '').downcase
     end
@@ -143,7 +154,7 @@ module Lastic
     attr_reader :arguments
     
     def initialize(*arguments)
-      @arguments = arguments
+      @arguments = arguments.map(&method(:coerce))
     end
 
     def ==(other)
@@ -163,7 +174,7 @@ module Lastic
     attr_reader :arguments
 
     def initialize(*arguments)
-      @arguments = arguments
+      @arguments = arguments.map(&method(:coerce))
     end
 
     def ==(other)
@@ -183,7 +194,10 @@ module Lastic
     attr_reader :must_clauses, :should_clauses, :must_not_clauses
 
     def initialize(must: [], should: [], must_not: [])
-      @must_clauses, @should_clauses, @must_not_clauses = must, should, must_not
+      @must_clauses, @should_clauses, @must_not_clauses =
+        must.map(&method(:coerce)),
+        should.map(&method(:coerce)),
+        must_not.map(&method(:coerce))
     end
 
     def ==(other)

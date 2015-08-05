@@ -49,6 +49,10 @@ module Lastic
       it 'allows to use shortcut' do
         expect(clause & clause2).to eq And.new(clause, clause2)
       end
+
+      it 'coerces second clause' do
+        expect(clause.and(title: 'Test')).to eq And.new(clause, Term.new(Field.new('title'), 'Test'))
+      end
     end
 
     context 'or' do
