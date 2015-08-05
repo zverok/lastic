@@ -26,6 +26,20 @@ module Lastic
     end
 
     it 'converts composite clauses' do
+      expect(clause.and(clause2).to_h).
+        to eq('and' => [clause.to_h, clause2.to_h])
+
+      expect(clause.or(clause2).to_h).
+        to eq('or' => [clause.to_h, clause2.to_h])
+
+      expect(clause.not.to_h).
+        to eq('not' => clause.to_h)
+
+      expect(clause.must.should(clause2).to_h).
+        to eq('bool' => {'must' => [clause.to_h], 'should' => [clause2.to_h]})
+
+      expect(clause.filter(clause2).to_h).
+        to eq('filtered' => {'query' => clause.to_h, 'filter' => clause2.to_h})
     end
 
     it 'converts clauses with nested fields' do

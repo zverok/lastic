@@ -115,6 +115,7 @@ module Lastic
   # Composed clauses
   class Not < Clause
     attr_reader :argument
+
     def initialize(argument)
       @argument = argument
     end
@@ -126,11 +127,16 @@ module Lastic
     def not
       argument
     end
+
+    def to_h
+      {'not' => argument.to_h}
+    end
   end
 
   class And < Clause
     attr_reader :arguments
-    def initialize(*argument)
+    
+    def initialize(*arguments)
       @arguments = arguments
     end
 
@@ -141,11 +147,16 @@ module Lastic
     def and(clause)
       And.new(*arguments, clause)
     end
+
+    def to_h
+      {'and' => arguments.map(&:to_h)}
+    end
   end
 
   class Or < Clause
     attr_reader :arguments
-    def initialize(*argument)
+
+    def initialize(*arguments)
       @arguments = arguments
     end
 
@@ -155,6 +166,10 @@ module Lastic
 
     def or(clause)
       Or.new(*arguments, clause)
+    end
+
+    def to_h
+      {'or' => arguments.map(&:to_h)}
     end
   end
 
@@ -183,6 +198,14 @@ module Lastic
     def must_not(*others)
       Bool.new(must: must_clauses, should: should_clauses, must_not: [*must_not_clauses, *others])
     end
+
+    def to_h
+      {'bool' => {
+        'must' => must_clauses.map(&:to_h),
+        'should' => should_clauses.map(&:to_h),
+        'must_not' => must_not_clauses.map(&:to_h)
+      }.reject{|k,v| v.empty?}}
+    end
   end
 
   class Filtered < Clause
@@ -200,6 +223,10 @@ module Lastic
 
     def filter_or(other)
       Filtered.new(query: query_clause, filter: filter_clause ? Or.new(filter_clause, other) : other)
+    end
+
+    def to_h
+      {'filtered' => {'query' => query_clause.to_h, 'filter' => filter_clause.to_h}}
     end
   end
 
