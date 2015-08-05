@@ -50,6 +50,14 @@ module Lastic
             'term' => {'author.name' => 'Vonnegut'}
           }
         })
+
+      expect(Lastic.field('author.name').nested.term('Vonnegut').to_h(mode: :query)).
+        to eq( 'nested' => {
+          'path' => 'author',
+          'query' => {
+            'term' => {'author.name' => 'Vonnegut'}
+          }
+        })
     end
   end
 end

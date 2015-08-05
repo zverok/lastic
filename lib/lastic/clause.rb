@@ -22,11 +22,11 @@ module Lastic
       super && field == other.field
     end
 
-    def to_h
+    def to_h(context = {})
       if field.is_a?(NestedField)
-        {'nested' => {'path' => field.path, 'filter' => {name => internal_to_h}}}
+        {'nested' => {'path' => field.path, (context[:mode] || :filter).to_s => {name => internal_to_h(context)}}}
       else
-        {name => internal_to_h}
+        {name => internal_to_h(context)}
       end
     end
   end
@@ -45,7 +45,7 @@ module Lastic
 
     protected
 
-    def internal_to_h
+    def internal_to_h(context = {})
       {field.to_s => operand}
     end
   end
@@ -72,7 +72,7 @@ module Lastic
   class Exists < SimpleClause
     protected
     
-    def internal_to_h
+    def internal_to_h(context = {})
       {'field' => field.to_s}
     end
   end
@@ -107,7 +107,7 @@ module Lastic
 
     protected
     
-    def internal_to_h
+    def internal_to_h(context = {})
       {field.to_s => range.map{|k,v| [k.to_s, v]}.to_h}
     end
   end
@@ -128,8 +128,8 @@ module Lastic
       argument
     end
 
-    def to_h
-      {'not' => argument.to_h}
+    def to_h(context = {})
+      {'not' => argument.to_h(context)}
     end
   end
 
@@ -148,8 +148,8 @@ module Lastic
       And.new(*arguments, clause)
     end
 
-    def to_h
-      {'and' => arguments.map(&:to_h)}
+    def to_h(context = {})
+      {'and' => arguments.map{|a| a.to_h(context)}}
     end
   end
 
@@ -168,8 +168,8 @@ module Lastic
       Or.new(*arguments, clause)
     end
 
-    def to_h
-      {'or' => arguments.map(&:to_h)}
+    def to_h(context = {})
+      {'or' => arguments.map{|a| a.to_h(context)}}
     end
   end
 
@@ -199,11 +199,11 @@ module Lastic
       Bool.new(must: must_clauses, should: should_clauses, must_not: [*must_not_clauses, *others])
     end
 
-    def to_h
+    def to_h(context = {})
       {'bool' => {
-        'must' => must_clauses.map(&:to_h),
-        'should' => should_clauses.map(&:to_h),
-        'must_not' => must_not_clauses.map(&:to_h)
+        'must' => must_clauses.map{|c| c.to_h(context)},
+        'should' => should_clauses.map{|c| c.to_h(context)},
+        'must_not' => must_not_clauses.map{|c| c.to_h(context)}
       }.reject{|k,v| v.empty?}}
     end
   end
@@ -225,8 +225,8 @@ module Lastic
       Filtered.new(query: query_clause, filter: filter_clause ? Or.new(filter_clause, other) : other)
     end
 
-    def to_h
-      {'filtered' => {'query' => query_clause.to_h, 'filter' => filter_clause.to_h}}
+    def to_h(context = {})
+      {'filtered' => {'query' => query_clause.to_h(context), 'filter' => filter_clause.to_h(context)}}
     end
   end
 
