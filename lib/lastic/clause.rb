@@ -1,5 +1,11 @@
 module Lastic
   class Clause
+    def ==(other)
+      self.class == other.class
+    end
+  end
+
+  class SimpleClause < Clause
     attr_reader :field
     
     def initialize(field)
@@ -7,11 +13,11 @@ module Lastic
     end
 
     def ==(other)
-      self.class == other.class && field == other.field
+      super && field == other.field
     end
   end
 
-  class Binary < Clause
+  class BinaryClause < SimpleClause
     attr_reader :operand
     
     def initialize(field, operand)
@@ -24,25 +30,26 @@ module Lastic
     end
   end
 
-  class Term < Binary
+  # Simple clauses
+  class Term < BinaryClause  
   end
 
-  class Terms < Binary
+  class Terms < BinaryClause
     def initialize(field, *values)
       super(field, values.flatten)
     end
   end
 
-  class Wildcard < Binary
+  class Wildcard < BinaryClause
   end
 
-  class Regexp < Binary
+  class Regexp < BinaryClause
   end
 
-  class Exists < Clause
+  class Exists < SimpleClause
   end
 
-  class Range < Clause
+  class Range < SimpleClause
     attr_reader :range
     
     def initialize(field, gt: nil, gte: nil, lt: nil, lte: nil)
@@ -71,6 +78,36 @@ module Lastic
     end
   end
 
+  # Composed clauses
+  class Not < Clause
+    attr_reader :argument
+    def initialize(argument)
+      @argument = argument
+    end
+
+    def ==(other)
+      super && argument == other.argument
+    end
+
+    def not
+      argument
+    end
+  end
+
+  # Clause#{composition} methods
+  module ClauseComposition
+    def not
+      Not.new(self)
+    end
+
+    alias_method :~, :not
+  end
+
+  class Clause
+    include ClauseComposition
+  end
+
+  # Field#{clause} methods
   module Clauses
     def term(value)
       Term.new(self, value)
