@@ -1,103 +1,51 @@
 module Lastic
-  describe Clause do
+  describe Field do
     describe :initialize do
-      context 'with string' do
-        subject{Field.new('authors.name')}
-
-        its(:name){should == 'authors.name'}
+      it 'can take string' do
+        expect(Field.new('authors.name').name).
+          to eq 'authors.name'
       end
 
-      context 'with array' do
-        subject{Field.new(:authors, :name)}
-
-        its(:name){should == 'authors.name'}
-      end
-    end
-
-    describe 'operations' do
-      let(:source){Field.new(:title)}
-
-      describe :term do
-        subject{source.term('Alice In Wonderland')}
-        it{should be_a(Clause)}
-        its(:op){should == :term}
-        its(:field){should == source}
-        its(:value){should == 'Alice In Wonderland'}
-        its(:to_h){should ==
-          {'term' => 
-            {'title' => 'Alice In Wonderland'}
-          }
-        }
+      it 'can take array array' do
+        expect(Field.new(:authors, :name).name).
+          to eq 'authors.name'
       end
 
-      describe :terms do
-        subject{source.terms('Alice In Wonderland', 'Slaughterhouse Five')}
-        it{should be_a(Clause)}
-        its(:op){should == :terms}
-        its(:field){should == source}
-        its(:value){should == ['Alice In Wonderland', 'Slaughterhouse Five']}
-        its(:to_h){should ==
-          {'terms' => 
-            {'title' => ['Alice In Wonderland', 'Slaughterhouse Five']}
-          }
-        }
-      end
-
-      describe :regexp do
-      end
-
-      describe :wildcard do
-        subject{source.wildcard('Alice In Wonder*')}
-        it{should be_a(Clause)}
-        its(:op){should == :wildcard}
-        its(:field){should == source}
-        its(:value){should == 'Alice In Wonder*'}
-        its(:to_h){should ==
-          {'wildcard' => 
-            {'title' => 'Alice In Wonder*'}
-          }
-        }
-      end
-
-      describe :range do
-      end
-
-      describe :simple_query_string do
-      end
-
-      describe :nested do
-        context 'by default' do
-        end
-
-        context 'with argument' do
-        end
-
-        context 'argument validation' do
-        end
-      end
-
-      describe :exists? do
-      end
-
-      describe :type do
+      it 'has a shortcut' do
+        expect(Lastic.field(:authors, :name)).
+          to eq Field.new('authors.name')
       end
     end
 
-    describe :=== do
-      context 'when single value' do
+    describe :nested do
+      let(:source){Field.new(:author, :name)}
+      it 'works with implicit path' do
+        expect(source.nested).to eq NestedField.new(source, 'author')
       end
 
-      context 'when array' do
+      it 'works with explicit path' do
+        expect(source.nested(:author)).to eq NestedField.new(source, 'author')
       end
 
-      context 'when range' do
+      it 'fails on wrong path' do
+        expect{Field.new(:title).nested}.to raise_error(ArgumentError)
+        expect{source.nested(:catalog)}.to raise_error(ArgumentError)
       end
 
-      context 'when regexp' do
+      it 'can produce clauses' do
+        expect(source.nested.term('Vonnegut')).
+          to eq Term.new(NestedField.new(source, 'author'), 'Vonnegut')
       end
     end
+  end
 
-    describe 'inequality' do
+  describe Fields do
+    describe :initialize do
+      it 'initializes several fields' do
+        fields = Fields.new('authors.name', 'authors.nickname')
+        expect(fields.fields.count).to eq 2
+        expect(fields.fields.map(&:name)).to eq ['authors.name', 'authors.nickname']
+      end
     end
   end
 end
