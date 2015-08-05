@@ -54,7 +54,26 @@ module Lastic
       describe :sort do
       end
 
-      describe :from do
+      describe :from! do
+        it 'updates offset' do
+          expect(request.from).to be_nil
+          request.from!(20)
+          expect(request.from).to eq 20
+        end
+
+        it 'updates limit, if provided' do
+          expect(request.size).to be_nil
+          request.from!(20, 100)
+          expect(request.from).to eq 20
+          expect(request.size).to eq 100
+        end
+
+        it 'works with range' do
+          expect(request.size).to be_nil
+          request.from!(20...40)
+          expect(request.from).to eq 20
+          expect(request.size).to eq 20
+        end
       end
     end
 
