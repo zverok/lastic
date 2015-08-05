@@ -1,30 +1,38 @@
 module Lastic
   class Clause
-    def ==(other)
-      self.class == other.class
-    end
-
-    def Clause.coerce(**fields)
+    def Clause.coerce_hash(**fields)
       fields.map{|name, value|
         Field.new(name) === value
       }.inject(&:must)
     end
 
-    protected
-
-    def coerce(other)
-      case other
+    def Clause.coerce(cl)
+      case cl
       when ::Hash
-        Clause.coerce(other)
-      when Clause
-        other
+        Clause.coerce_hash(cl)
+      when Clause, nil
+        cl
       else
-        fail(ArgumentError, "Can't coerce #{other.class} to query clause")
+        fail(ArgumentError, "Can't coerce #{cl.class} to query clause")
       end
+    end
+
+    def ==(other)
+      self.class == other.class
+    end
+
+    def quariable?
+      true
     end
 
     def name
       self.class.name.sub(/.+::/, '').downcase
+    end
+
+    protected
+
+    def coerce(other)
+      Clause.coerce(other)
     end
   end
 
@@ -87,6 +95,10 @@ module Lastic
   end
 
   class Exists < SimpleClause
+    def quariable?
+      false
+    end
+
     protected
     
     def internal_to_h(context = {})
@@ -141,6 +153,10 @@ module Lastic
       super && argument == other.argument
     end
 
+    def quariable?
+      false
+    end
+
     def not
       argument
     end
@@ -161,6 +177,10 @@ module Lastic
       super && arguments == other.arguments
     end
 
+    def quariable?
+      false
+    end
+
     def and(clause)
       And.new(*arguments, clause)
     end
@@ -179,6 +199,10 @@ module Lastic
 
     def ==(other)
       super && arguments == other.arguments
+    end
+
+    def quariable?
+      false
     end
 
     def or(clause)
@@ -232,7 +256,7 @@ module Lastic
     attr_reader :query_clause, :filter_clause
 
     def initialize(query: nil, filter: nil)
-      @query_clause, @filter_clause = query, filter
+      @query_clause, @filter_clause = coerce(query), coerce(filter)
     end
 
     def filter_and(other)
