@@ -94,6 +94,36 @@ module Lastic
     end
   end
 
+  class And < Clause
+    attr_reader :arguments
+    def initialize(*argument)
+      @arguments = arguments
+    end
+
+    def ==(other)
+      super && arguments == other.arguments
+    end
+
+    def and(clause)
+      And.new(*arguments, clause)
+    end
+  end
+
+  class Or < Clause
+    attr_reader :arguments
+    def initialize(*argument)
+      @arguments = arguments
+    end
+
+    def ==(other)
+      super && arguments == other.arguments
+    end
+
+    def or(clause)
+      Or.new(*arguments, clause)
+    end
+  end
+
   # Clause#{composition} methods
   module ClauseComposition
     def not
@@ -101,6 +131,18 @@ module Lastic
     end
 
     alias_method :~, :not
+
+    def and(clause)
+      And.new(self, clause)
+    end
+
+    alias_method :&, :and
+
+    def or(clause)
+      Or.new(self, clause)
+    end
+
+    alias_method :|, :or
   end
 
   class Clause
