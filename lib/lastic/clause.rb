@@ -3,6 +3,12 @@ module Lastic
     def ==(other)
       self.class == other.class
     end
+
+    protected
+
+    def name
+      self.class.name.sub(/.+::/, '').downcase
+    end
   end
 
   class SimpleClause < Clause
@@ -14,6 +20,14 @@ module Lastic
 
     def ==(other)
       super && field == other.field
+    end
+
+    def to_h
+      if field.is_a?(NestedField)
+        {'nested' => {'path' => field.path, 'filter' => {name => internal_to_h}}}
+      else
+        {name => internal_to_h}
+      end
     end
   end
 
@@ -27,6 +41,12 @@ module Lastic
 
     def ==(other)
       super && operand == other.operand
+    end
+
+    protected
+
+    def internal_to_h
+      {field.to_s => operand}
     end
   end
 
@@ -44,9 +64,17 @@ module Lastic
   end
 
   class Regexp < BinaryClause
+    def initialize(field, regexp)
+      super(field, regexp.to_s.gsub(/^\(\?-mix:(.+)\)$/, '\1'))
+    end
   end
 
   class Exists < SimpleClause
+    protected
+    
+    def internal_to_h
+      {'field' => field.to_s}
+    end
   end
 
   class Range < SimpleClause
@@ -75,6 +103,12 @@ module Lastic
 
     def <=(value)
       Range.new(field, range.merge(lte: value))
+    end
+
+    protected
+    
+    def internal_to_h
+      {field.to_s => range.map{|k,v| [k.to_s, v]}.to_h}
     end
   end
 

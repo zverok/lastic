@@ -34,6 +34,10 @@ module Lastic
       other.is_a?(NestedField) && name == other.name && path == other.path
     end
 
+    def to_s
+      name
+    end
+
     include Clauses
 
     private
