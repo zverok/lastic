@@ -74,6 +74,14 @@ module Lastic
             Term.new(Field.new('name'), 'John')
             ])
       end
+
+      it 'coerces fields and nested fields' do
+        expect(Clause.coerce(Lastic.field(:length) => (1..10))).
+          to eq Range.new(Field.new('length'), gte: 1, lte: 10)
+
+        expect(Clause.coerce(Lastic.field('body.length').nested => (1..10))).
+          to eq Range.new(NestedField.new('body.length', 'body'), gte: 1, lte: 10)
+      end
     end
   end
 end

@@ -52,6 +52,9 @@ module Lastic
 
       it 'coerces second clause' do
         expect(clause.and(title: 'Test')).to eq And.new(clause, Term.new(Field.new('title'), 'Test'))
+
+        expect(clause.and(Lastic.field('author.name').nested => 'Test')).
+          to eq And.new(clause, Term.new(NestedField.new('author.name', 'author'), 'Test'))
       end
     end
 

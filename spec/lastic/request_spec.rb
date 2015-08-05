@@ -45,10 +45,39 @@ module Lastic
         end
       end
 
-      describe :query_must_not do
+      describe :query_must_not! do
       end
 
-      describe :filter do
+      describe :filter_and! do
+        it 'attaches filter to previous' do
+          expect(request.filter).to be_nil
+
+          request.filter_and!(Lastic.field(:title).exists)
+          expect(request.filter).to eq Exists.new(Lastic.field(:title))
+
+          request.filter_and!(title: /test/)
+          expect(request.filter).
+            to eq And.new(
+              Exists.new(Lastic.field(:title)),
+              Regexp.new(Lastic.field(:title), 'test')
+            )
+        end
+
+        it 'wraps request\'s query' do
+          request.filter_and!(Lastic.field(:title).exists)
+          expect(request.query).to eq Filtered.new(filter: Exists.new(Lastic.field(:title)))
+        end
+
+        it 'wraps correctly even after long query/filter chains' do
+        end
+
+        it 'raises on non-filterable clause' do
+        end
+      end
+
+      describe :filter_or! do
+        it 'attaches filter to previous' do
+        end
       end
 
       describe :sort do
@@ -88,6 +117,72 @@ module Lastic
     end
 
     describe :to_h do
+      subject(:request){Request.new}
+      
+      it 'dumps query' do
+        request.query!(title: 'Test')
+        
+        expect(request.to_h).
+          to eq( 'query' => request.query.to_h )
+      end
+
+      it 'correctly dumps nested queries and filters' do
+        request.query!(
+          Lastic.field('author.name').nested.term('Vonnegut').
+            filter(Lastic.field('author.dead').nested => true)
+        ).filter!(
+          Lastic.field('author.books.count').nested('author') => (30..100)
+        )
+        expect(request.to_h).to eq(
+          'query' => {
+            'filtered' => {
+              'query' => {
+                'filtered' => {
+                  'query' => {
+                    'nested' => {
+                      'path' => 'author',
+                      'query' => {
+                        'term' => {
+                          'author.name' => 'Vonnegut'
+                        }
+                      }
+                    }
+                  },
+                  'filter' => {
+                    'nested' => {
+                      'path' => 'author',
+                      'filter' => {
+                        'term' => {
+                          'author.dead' => true
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              'filter' => {
+                'nested' => {
+                  'path' => 'author',
+                  'filter' => {
+                    'range' => {
+                      'author.books.count' => {
+                        'gte' => 30,
+                        'lte' => 100
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        )
+      end
+
+      it 'dumps sort' do
+      end
+
+      it 'dumps from/size' do
+      end
     end
   end
 end

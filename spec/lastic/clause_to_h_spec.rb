@@ -58,6 +58,31 @@ module Lastic
             'term' => {'author.name' => 'Vonnegut'}
           }
         })
+
+      nested_filters = Lastic.field('author.name').nested.term('Vonnegut').
+        filter(Lastic.field('author.dead').nested.term(true))
+
+      expect(nested_filters.to_h).
+        to eq(
+          'filtered' => {
+            'query' => {
+              'nested' => {
+                'path' => 'author',
+                'query' => {
+                  'term' => {'author.name' => 'Vonnegut'}
+                }
+              }
+            },
+            'filter' => {
+              'nested' => {
+                'path' => 'author',
+                'filter' => {
+                  'term' => {'author.dead' => true}
+                }
+              }
+            },
+          })
+
     end
   end
 end

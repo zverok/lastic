@@ -1,8 +1,12 @@
 module Lastic
   class Clause
-    def Clause.coerce_hash(**fields)
-      fields.map{|name, value|
-        Field.new(name) === value
+    def Clause.coerce_hash(fields)
+      fields.map{|field, value|
+        if field.is_a?(Field) || field.is_a?(NestedField) || field.is_a?(Fields)
+          field === value
+        else
+          Field.new(field) === value
+        end
       }.inject(&:must)
     end
 
@@ -270,7 +274,11 @@ module Lastic
     end
 
     def to_h(context = {})
-      {'filtered' => {'query' => query_clause.to_h(context), 'filter' => filter_clause.to_h(context)}}
+      {'filtered' => {
+        'query' => query_clause.to_h(context.merge(mode: :query)),
+        'filter' => filter_clause.to_h(context.merge(mode: :filter))
+        }
+      }
     end
   end
 
