@@ -6,6 +6,20 @@ module Lastic
     let(:clause3){field.regexp(/H.+nl.+n/)}
     
     context 'bool' do
+      it 'works with must, should, must_not' do
+        expect(clause.must).to eq Bool.new(must: [clause])
+        expect(clause.must(clause2)).to eq Bool.new(must: [clause, clause2])
+
+        expect(clause.should).to eq Bool.new(should: [clause])
+        expect(clause.should(clause2)).to eq Bool.new(should: [clause, clause2])
+
+        expect(clause.must_not).to eq Bool.new(must_not: [clause])
+        expect(clause.must_not(clause2)).to eq Bool.new(must_not: [clause, clause2])
+      end
+
+      it 'produces flat structures' do
+        expect(clause.must.should(clause2)).to eq Bool.new(must: [clause], should: [clause2])
+      end
     end
 
     context 'not' do

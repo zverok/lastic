@@ -124,6 +124,33 @@ module Lastic
     end
   end
 
+  class Bool < Clause
+    attr_reader :must_clauses, :should_clauses, :must_not_clauses
+
+    def initialize(must: [], should: [], must_not: [])
+      @must_clauses, @should_clauses, @must_not_clauses = must, should, must_not
+    end
+
+    def ==(other)
+      super &&
+        must_clauses == other.must_clauses &&
+        should_clauses == other.should_clauses &&
+        must_not_clauses == other.must_not_clauses
+    end
+
+    def must(*others)
+      Bool.new(must: [*must_clauses, *others], should: should_clauses, must_not: must_not_clauses)
+    end
+
+    def should(*others)
+      Bool.new(must: must_clauses, should: [*should_clauses, *others], must_not: must_not_clauses)
+    end
+
+    def must_not(*others)
+      Bool.new(must: must_clauses, should: should_clauses, must_not: [*must_not_clauses, *others])
+    end
+  end
+
   # Clause#{composition} methods
   module ClauseComposition
     def not
@@ -143,6 +170,18 @@ module Lastic
     end
 
     alias_method :|, :or
+
+    def must(*others)
+      Bool.new(must: [self, *others])
+    end
+
+    def should(*others)
+      Bool.new(should: [self, *others])
+    end
+
+    def must_not(*others)
+      Bool.new(must_not: [self, *others])
+    end
   end
 
   class Clause
