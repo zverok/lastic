@@ -1,4 +1,6 @@
 module Lastic
+  require_relative 'lastic/clause'
+
   class Field
     attr_reader :name
     
@@ -14,28 +16,42 @@ module Lastic
       name
     end
 
-    def term(value)
-      Clause.new(:term, self, value)
-    end
+    include Clauses
 
-    def terms(*values)
-      Clause.new(:terms, self, values)
-    end
-
-    def wildcard(value)
-      Clause.new(:wildcard, self, value)
+    def nested(path = nil)
+      NestedField.new(name, path)
     end
   end
 
-  class Clause
-    attr_reader :op, :field, :value
-    
-    def initialize(op, field, value)
-      @op, @field, @value = op, field, value
+  class NestedField
+    attr_reader :name, :path
+
+    def initialize(name, path = nil)
+      path ||= guess_path(name)
+      validate_path(name, path)
+      @name, @path = name.to_s, path.to_s
     end
 
-    def to_h
-      {@op.to_s => {@field.to_s => @value}}
+    def ==(other)
+      other.is_a?(NestedField) && name == other.name && path == other.path
+    end
+
+    include Clauses
+
+    private
+
+    def guess_path(name)
+      name.to_s.split('.').tap{|c|
+        c.count < 2 and fail(ArgumentError, "Seems not nested field name: #{name}")
+      }[0..-2].join('.')
+    end
+
+    def validate_path(name, path)
+      pc = path.to_s.split('.')
+      nc = name.to_s.split('.')
+      nc.count > pc.count && nc[0...pc.count] == pc or
+        fail(ArgumentError, "Path #{path} is not part of the field #{name}")
     end
   end
 end
+
