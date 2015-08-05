@@ -66,7 +66,21 @@ module Lastic
       end
     end
 
-    context 'filter' do
+    context 'filtered' do
+      it 'composes!' do
+        expect(clause.filter(clause2)).to eq Filtered.new(query: clause, filter: clause2)
+      end
+
+      it 'creates flat structure on subsequent' do
+        expect(clause.filter(clause2).filter(clause3)).
+          to eq Filtered.new(query: clause, filter: And.new(clause2, clause3))
+
+        expect(clause.filter(clause2).filter_or(clause3)).
+          to eq Filtered.new(query: clause, filter: Or.new(clause2, clause3))
+      end
+    end
+
+    context 'query' do
     end
   end
 end

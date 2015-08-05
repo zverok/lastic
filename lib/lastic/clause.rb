@@ -151,8 +151,27 @@ module Lastic
     end
   end
 
+  class Filtered < Clause
+    attr_reader :query_clause, :filter_clause
+
+    def initialize(query: nil, filter: nil)
+      @query_clause, @filter_clause = query, filter
+    end
+
+    def filter_and(other)
+      Filtered.new(query: query_clause, filter: filter_clause ? And.new(filter_clause, other) : other)
+    end
+
+    alias_method :filter, :filter_and
+
+    def filter_or(other)
+      Filtered.new(query: query_clause, filter: filter_clause ? Or.new(filter_clause, other) : other)
+    end
+  end
+
   # Clause#{composition} methods
   module ClauseComposition
+    # simple booleans
     def not
       Not.new(self)
     end
@@ -171,6 +190,7 @@ module Lastic
 
     alias_method :|, :or
 
+    # Bool filter
     def must(*others)
       Bool.new(must: [self, *others])
     end
@@ -182,6 +202,14 @@ module Lastic
     def must_not(*others)
       Bool.new(must_not: [self, *others])
     end
+
+    # filtered
+    def filter(other)
+      Filtered.new(query: self, filter: other)
+    end
+
+    alias_method :filter_and, :filter
+    alias_method :filter_or, :filter
   end
 
   class Clause
