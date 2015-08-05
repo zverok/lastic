@@ -4,6 +4,12 @@ module Lastic
       self.class == other.class
     end
 
+    def Clause.coerce(**fields)
+      fields.map{|name, value|
+        Field.new(name) === value
+      }.inject(&:must)
+    end
+
     protected
 
     def name
