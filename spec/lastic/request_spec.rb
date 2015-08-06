@@ -2,9 +2,6 @@ module Lastic
   include Clauses
   
   describe Request do
-    describe :initialize do
-    end
-
     describe 'updating' do
       subject(:request){Request.new}
 

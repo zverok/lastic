@@ -71,4 +71,36 @@ module Lastic
       fields.map(&:to_s)
     end
   end
+
+  class SortableField
+    attr_reader :field, :options
+
+    using StringifyKeys
+    
+    def initialize(field, **options)
+      @field, @options = field, options
+    end
+
+    def ==(other)
+      other.is_a?(SortableField) && field == other.field && options == other.options
+    end
+
+    def to_h
+      {field.to_s => options.stringify_keys}
+    end
+
+    module FromField
+      def asc
+        SortableField.new(self, order: 'asc')
+      end
+
+      def desc
+        SortableField.new(self, order: 'desc')
+      end
+    end
+  end
+
+  class Field
+    include SortableField::FromField
+  end
 end
