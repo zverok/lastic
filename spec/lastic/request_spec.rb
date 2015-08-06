@@ -161,22 +161,32 @@ module Lastic
 
     describe :to_h do
       subject(:request){Request.new}
-      
-      it 'dumps query' do
-        request.query!(title: 'Test')
-        
-        expect(request.to_h).
-          to eq( 'query' => request.query.to_h )
+
+      context 'empty' do
+        subject{request}
+        its(:to_h){
+          should == {'query' => {'match_all' => {}}}
+        }
       end
 
-      it 'correctly dumps nested queries and filters' do
-        request.query!(
-          Lastic.field('author.name').nested.term('Vonnegut').
-            filter(Lastic.field('author.dead').nested => true)
-        ).filter!(
-          Lastic.field('author.books.count').nested('author') => (30..100)
-        )
-        expect(request.to_h).to eq(
+      context 'simple' do
+        subject{request.query(title: 'Test')}
+
+        its(:to_h){should == {'query' => subject.query.to_h}}
+      end
+
+      context 'deep nesting' do
+        subject{
+          request.query(
+            Lastic.field('author.name').nested.term('Vonnegut').
+              filter(Lastic.field('author.dead').nested => true)
+          ).filter(
+            Lastic.field('author.books.count').nested('author') => (30..100)
+          )
+        }
+
+        # THAT'S how Lastic rules. Compare THIS ↓ and THAT ↑ which are equal
+        its(:to_h){should == {
           'query' => {
             'filtered' => {
               'query' => {
@@ -218,16 +228,24 @@ module Lastic
               }
             }
           }
-        )
+        }}
       end
 
-      it 'dumps match_all on empty query' do
+      context 'sort' do
+        subject{request.sort(Lastic.field(:title).desc)}
+        its(:to_h){should == {
+          'query' => {'match_all' => {}},
+          'sort' => [{'title' => {'order' => 'desc'}}]
+        }}
       end
 
-      it 'dumps sort' do
-      end
-
-      it 'dumps from/size' do
+      context 'from/size' do
+        subject{request.from(10, 20)}
+        its(:to_h){should == {
+          'query' => {'match_all' => {}},
+          'from' => 10,
+          'size' => 20
+        }}
       end
     end
   end

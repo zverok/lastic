@@ -108,8 +108,11 @@ module Lastic
     # Dumping ----------------------------------------------------------
     def to_h
       {
-        'query' => query.to_h
-      }
+        'query' => (query ? query.to_h : {'match_all' => {}}),
+        'sort' => sort && sort.map(&:to_h),
+        'from' => from,
+        'size' => size
+      }.reject{|k, v| v.nil? || v.respond_to?(:empty?) && v.empty?}
     end
 
     protected
