@@ -61,9 +61,11 @@ TODO: more to write here!
 
 **Caution!**
 * We use ElasticSearch for a limited set of tasks. This design works for
-them. Maybe for yours it will not at all.
+  them. Maybe for yours it will not at all.
 * Lastic is in early stages of development and it is definitely NOT feature-
   complete, though targeting it.
+
+## Usage
 
 ## Roadmap
 

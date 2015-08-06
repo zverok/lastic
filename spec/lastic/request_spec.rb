@@ -72,6 +72,9 @@ module Lastic
         end
 
         it 'raises on non-filterable clause' do
+          expect{
+            request.filter_and!(Lastic.field(:title).term('test').filter(title: /test/))
+          }.to raise_error(ArgumentError, /be used in filter/)
         end
       end
 

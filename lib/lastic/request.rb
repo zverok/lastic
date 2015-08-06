@@ -4,7 +4,7 @@ module Lastic
     end
 
     def query_must!(clause)
-      clause = coerce_query_clause(clause)
+      clause = Clause.coerce(clause, :query)
         
       @query = if @query
         @query.must(clause)
@@ -17,7 +17,7 @@ module Lastic
     alias_method :query!, :query_must!
 
     def query_should!(clause)
-      clause = coerce_query_clause(clause)
+      clause = Clause.coerce(clause, :query)
       
       @query = if @query
         @query.should(clause)
@@ -35,7 +35,8 @@ module Lastic
     end
 
     def filter_and!(clause)
-      clause = coerce_filter_clause(clause)
+      clause = Clause.coerce(clause, :filter)
+
       @filter = if @filter
         @filter.and(clause)
       else
@@ -47,7 +48,8 @@ module Lastic
     alias_method :filter!, :filter_and!
 
     def filter_or!(clause)
-      clause = coerce_filter_clause(clause)
+      clause = Clause.coerce(clause, :filter)
+      
       @filter = if @filter
         @filter.or(clause)
       else
@@ -98,20 +100,6 @@ module Lastic
       else
         @query
       end
-    end
-
-    def coerce_query_clause(clause)
-      Clause.coerce(clause).tap{|cl|
-        cl.quariable? or
-          fail(ArgumentError, "`#{clause.name}` can't be used in query")
-      }
-    end
-
-    def coerce_filter_clause(clause)
-      Clause.coerce(clause).tap{|cl|
-        #cl.filterable? or
-          #fail(ArgumentError, "`#{clause.name}` can't be used in query")
-      }
     end
   end
 end

@@ -85,6 +85,14 @@ module Lastic
         expect(clause.filter(clause2).filter_or(clause3)).
           to eq Filtered.new(query: clause, filter: Or.new(clause2, clause3))
       end
+
+      it 'raises on non-queriable as a query' do
+        expect{Lastic.field(:title).exists.filter(clause2)}.
+          to raise_error(ArgumentError, /be used in query/)
+      end
+
+      it 'raises on non-filterable as a filter' do
+      end
     end
 
     context 'query' do

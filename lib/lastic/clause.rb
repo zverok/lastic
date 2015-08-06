@@ -10,7 +10,7 @@ module Lastic
       }.inject(&:must)
     end
 
-    def Clause.coerce(cl)
+    def Clause.coerce(cl, scope = nil)
       case cl
       when ::Hash
         Clause.coerce_hash(cl)
@@ -18,14 +18,30 @@ module Lastic
         cl
       else
         fail(ArgumentError, "Can't coerce #{cl.class} to query clause")
-      end
+      end.tap{|res|
+        if res
+          case scope
+          when nil
+          when :query
+            res.queriable? or fail(ArgumentError, "`#{res.name}` can't be used in query")
+          when :filter
+            res.filterable? or fail(ArgumentError, "`#{res.name}` can't be used in filter")
+          else
+            fail(ArgumentError, "Undefined coercion scope: #{scope.inspect}")
+          end
+        end
+      }
     end
 
     def ==(other)
       self.class == other.class
     end
 
-    def quariable?
+    def queriable?
+      true
+    end
+
+    def filterable?
       true
     end
 
@@ -35,8 +51,8 @@ module Lastic
 
     protected
 
-    def coerce(other)
-      Clause.coerce(other)
+    def coerce(other, scope = nil)
+      Clause.coerce(other, scope)
     end
   end
 
@@ -99,7 +115,7 @@ module Lastic
   end
 
   class Exists < SimpleClause
-    def quariable?
+    def queriable?
       false
     end
 
@@ -157,7 +173,7 @@ module Lastic
       super && argument == other.argument
     end
 
-    def quariable?
+    def queriable?
       false
     end
 
@@ -181,7 +197,7 @@ module Lastic
       super && arguments == other.arguments
     end
 
-    def quariable?
+    def queriable?
       false
     end
 
@@ -205,7 +221,7 @@ module Lastic
       super && arguments == other.arguments
     end
 
-    def quariable?
+    def queriable?
       false
     end
 
@@ -260,7 +276,11 @@ module Lastic
     attr_reader :query_clause, :filter_clause
 
     def initialize(query: nil, filter: nil)
-      @query_clause, @filter_clause = coerce(query), coerce(filter)
+      @query_clause, @filter_clause = coerce(query, :query), coerce(filter, :filter)
+    end
+
+    def filterable?
+      false
     end
 
     def filter_and(other)
