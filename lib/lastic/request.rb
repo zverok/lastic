@@ -4,7 +4,7 @@ module Lastic
     end
 
     def query_must!(clause)
-      clause = Clause.coerce(clause, :query)
+      clause = Clauses.coerce(clause, :query)
         
       @query = if @query
         @query.must(clause)
@@ -35,7 +35,7 @@ module Lastic
     end
 
     def filter_and!(clause)
-      clause = Clause.coerce(clause, :filter)
+      clause = Clauses.coerce(clause, :filter)
 
       @filter = if @filter
         @filter.and(clause)
@@ -48,7 +48,7 @@ module Lastic
     alias_method :filter!, :filter_and!
 
     def filter_or!(clause)
-      clause = Clause.coerce(clause, :filter)
+      clause = Clauses.coerce(clause, :filter)
       
       @filter = if @filter
         @filter.or(clause)

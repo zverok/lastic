@@ -1,7 +1,9 @@
 module Lastic
-  describe Field, 'conversion to clause' do
+  include Clauses
+
+  describe Clauses::FromField do
     let(:source){Field.new(:title)}
-    
+
     context 'simple operators' do
       it 'should do the clauses!' do
         expect(source.term('Alice In Wonderland')).
@@ -60,27 +62,6 @@ module Lastic
 
         expect((source > 1) < 2).
           to eq Range.new(source, gt: 1, lt: 2)
-      end
-    end
-
-    context 'clause coercion' do
-      it 'coerces field name and operation' do
-        expect(Clause.coerce(length: (1..10))).
-          to eq Range.new(Field.new('length'), gte: 1, lte: 10)
-
-        expect(Clause.coerce(length: (1..10), name: 'John')).
-          to eq Bool.new(must: [
-            Range.new(Field.new('length'), gte: 1, lte: 10),
-            Term.new(Field.new('name'), 'John')
-            ])
-      end
-
-      it 'coerces fields and nested fields' do
-        expect(Clause.coerce(Lastic.field(:length) => (1..10))).
-          to eq Range.new(Field.new('length'), gte: 1, lte: 10)
-
-        expect(Clause.coerce(Lastic.field('body.length').nested => (1..10))).
-          to eq Range.new(NestedField.new('body.length', 'body'), gte: 1, lte: 10)
       end
     end
   end

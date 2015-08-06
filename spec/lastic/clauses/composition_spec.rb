@@ -1,5 +1,7 @@
 module Lastic
-  describe Clause, 'composition' do
+  include Clauses
+  
+  describe Clauses, 'composition' do
     let(:field){Field.new(:title)}
     let(:clause){field.term('Vonnegut')}
     let(:clause2){field.wildcard('Br?db?ry')}

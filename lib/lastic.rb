@@ -1,5 +1,5 @@
 module Lastic
-  %w[clause fields query request].each do |mod|
+  %w[clauses fields query request].each do |mod|
     require_relative "lastic/#{mod}"
   end
 

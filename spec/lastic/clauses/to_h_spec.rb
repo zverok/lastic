@@ -1,5 +1,7 @@
 module Lastic
-  describe Clause, :to_h do
+  include Clauses
+  
+  describe Clauses, :to_h do
     let(:field){Field.new(:title)}
     let(:clause){field.term('Vonnegut')}
     let(:clause2){field.wildcard('Br?db?ry')}
