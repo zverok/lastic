@@ -80,6 +80,17 @@ module Lastic
 
       describe :filter_or! do
         it 'attaches filter to previous' do
+          expect(request.filter).to be_nil
+
+          request.filter_or!(Lastic.field(:title).exists)
+          expect(request.filter).to eq Exists.new(Lastic.field(:title))
+
+          request.filter_or!(title: /test/)
+          expect(request.filter).
+            to eq Or.new(
+              Exists.new(Lastic.field(:title)),
+              Regexp.new(Lastic.field(:title), 'test')
+            )
         end
       end
 
