@@ -3,6 +3,7 @@ module Lastic
     def initialize
     end
 
+    # Quering ----------------------------------------------------------
     def query_must!(clause)
       clause = Clauses.coerce(clause, :query)
         
@@ -27,13 +28,11 @@ module Lastic
       self
     end
 
-    def from!(from, size = nil)
-      from, size = from.begin, (from.end-from.begin) if from.is_a?(::Range)
-      @from = from
-      @size = size if size
-      self
+    def raw_query
+      @query
     end
 
+    # Filtering --------------------------------------------------------
     def filter_and!(clause)
       clause = Clauses.coerce(clause, :filter)
 
@@ -58,14 +57,42 @@ module Lastic
       self
     end
 
+    # Ordering ---------------------------------------------------------
+    def sort!(*fields)
+      @sort = fields.map(&SortableField.method(:coerce))
+      self
+    end
+
+    # Limiting ---------------------------------------------------------
+    def from!(from, size = nil)
+      from, size = from.begin, (from.end-from.begin) if from.is_a?(::Range)
+      @from = from
+      @size = size if size
+      self
+    end
+
+    # Non-bang versions ------------------------------------------------
     def query(*arg)
       return filtered_query if arg.empty?
       dup.query!(*arg)
     end
 
+    def query_must(clause)
+      dup.query_must!(clause)
+    end
+
+    def query_should(clause)
+      dup.query_should!(clause)
+    end
+
     def filter(*arg)
       return @filter if arg.empty?
       dup.filter!(*arg)
+    end
+
+    def sort(*arg)
+      return @sort if arg.empty?
+      dup.sort!(*arg)
     end
 
     def from(*arg)
@@ -78,14 +105,7 @@ module Lastic
       dup.size!(*arg)
     end
 
-    def query_must(clause)
-      dup.query_must!(clause)
-    end
-
-    def query_should(clause)
-      dup.query_should!(clause)
-    end
-
+    # Dumping ----------------------------------------------------------
     def to_h
       {
         'query' => query.to_h

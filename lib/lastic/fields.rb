@@ -89,6 +89,17 @@ module Lastic
       {field.to_s => options.stringify_keys}
     end
 
+    def self.coerce(field)
+      case field
+      when SortableField
+        field
+      when Field
+        new(field)
+      else
+        new(Field.new(field))
+      end
+    end
+
     module FromField
       def asc
         SortableField.new(self, order: 'asc')

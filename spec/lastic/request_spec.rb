@@ -93,7 +93,16 @@ module Lastic
         end
       end
 
-      describe :sort do
+      describe :sort! do
+        it 'sets sort fields' do
+          expect(request.sort).to be_nil
+          request.sort!(:title, Lastic.field(:body).desc)
+          expect(request.sort).
+            to eq([
+              SortableField.new(Field.new(:title)),
+              SortableField.new(Field.new(:body), order: 'desc')
+            ])
+        end
       end
 
       describe :from! do
@@ -120,12 +129,33 @@ module Lastic
     end
 
     describe 'non-bang methods' do
-      subject(:request){Request.new}
+      let(:initial){Request.new}
 
-      it 'should never change source, just produce duplicate' do
-        other = request.query_must(test: 'me')
-        expect(request.query).to be_nil
-        expect(other.query).to eq Term.new(Field.new('test'), 'me')
+      let!(:result){
+        initial.
+          query(title: 'Slaughterhouse Five').
+          filter(author: 'Vonnegut').
+          sort(:rating).
+          from(10, 20)
+      }
+
+      describe 'initial' do
+        subject{initial}
+        
+        its(:query){should be_nil}
+        its(:filter){should be_nil}
+        its(:sort){should be_nil}
+        its(:from){should be_nil}
+      end
+
+      describe 'produced' do
+        subject{result}
+
+        its(:raw_query){should == Term.new(Field.new('title'), 'Slaughterhouse Five')}
+        its(:filter){should == Term.new(Field.new('author'), 'Vonnegut')}
+        its(:sort){should == [SortableField.new(Field.new(:rating))]}
+        its(:from){should == 10}
+        its(:size){should == 20}
       end
     end
 
@@ -189,6 +219,9 @@ module Lastic
             }
           }
         )
+      end
+
+      it 'dumps match_all on empty query' do
       end
 
       it 'dumps sort' do
