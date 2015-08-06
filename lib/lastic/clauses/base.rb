@@ -14,7 +14,11 @@ module Lastic
       end
 
       def name
-        self.class.name.sub(/.+::/, '').downcase
+        self.class.name.sub(/.+::/, '').gsub(/([a-z])([A-Z])/, '\1_\2').downcase
+      end
+
+      def to_h
+        fail NotImplementedError, "#to_h was not redefined for `#{name}`"
       end
 
       protected

@@ -66,5 +66,9 @@ module Lastic
     def ==(other)
       other.is_a?(Fields) && fields == other.fields
     end
+
+    def to_a
+      fields.map(&:to_s)
+    end
   end
 end

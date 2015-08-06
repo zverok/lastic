@@ -31,6 +31,10 @@ module Lastic
         super && fields == other.fields
       end
 
+      def to_h
+        {name => {'fields' => fields.to_a, 'query' => string}}
+      end
+
       private
 
       def coerce_fields(fields)
@@ -130,18 +134,23 @@ module Lastic
       end
     end
 
-    class QueryString < MultiField
-      def initialize(fields, str, **options)
+    class QueryStringBase < MultiField
+      attr_reader :string, :options
+      
+      def initialize(fields, string, **options)
         super(fields)
-        @str, @options = str, options
+        @string, @options = string, options
+      end
+
+      def filterable?
+        false
       end
     end
+    
+    class QueryString < QueryStringBase
+    end
 
-    class SimpleQueryString < MultiField
-      def initialize(fields, str, **options)
-        super(fields)
-        @str, @options = str, options
-      end
+    class SimpleQueryString < QueryStringBase
     end
 
     module FromField
