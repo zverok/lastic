@@ -17,7 +17,7 @@ module Lastic
     alias_method :query!, :query_must!
 
     def query_should!(clause)
-      clause = Clause.coerce(clause, :query)
+      clause = Clauses.coerce(clause, :query)
       
       @query = if @query
         @query.should(clause)
@@ -96,7 +96,7 @@ module Lastic
 
     def filtered_query
       if @filter
-        Filtered.new(query: @query, filter: @filter)
+        Clauses::Filtered.new(query: @query, filter: @filter)
       else
         @query
       end

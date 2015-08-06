@@ -52,6 +52,11 @@ module Lastic
         to eq('simple_query_string' => {'fields' => ['title'], 'query' => 'wtf'})
     end
 
+    it 'converts empty multi-field clauses' do
+      expect(QueryString.new(nil, 'wtf').to_h).
+        to eq('query_string' => {'query' => 'wtf'})
+    end
+
     it 'converts clauses with nested fields' do
       expect(Lastic.field('author.name').nested.term('Vonnegut').to_h).
         to eq( 'nested' => {

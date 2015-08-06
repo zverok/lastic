@@ -32,7 +32,7 @@ module Lastic
       end
 
       def to_h
-        {name => {'fields' => fields.to_a, 'query' => string}}
+        {name => {'fields' => fields.to_a, 'query' => string}.reject{|k, v| v.empty?}}
       end
 
       private
@@ -43,6 +43,8 @@ module Lastic
           Fields.new(fields)
         when Fields
           fields
+        when nil
+          Fields.new
         else
           fail(ArgumentError, "Can't coerce #{fields.class} to Fields")
         end
