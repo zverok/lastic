@@ -6,7 +6,7 @@ module Lastic
       subject(:request){Request.new}
 
       describe :query_must! do
-        it 'should add must clauses to query' do
+        it 'adds must clauses to query' do
           expect(request.query).to be_nil
           
           request.query_must!(Lastic.field(:title).term('test'))
@@ -21,14 +21,14 @@ module Lastic
             ])
         end
         
-        it 'should raise on non-queriable clause' do
+        it 'raises on non-queriable clause' do
           expect{request.query_must!(Lastic.field(:title).exists)}.
             to raise_error(ArgumentError, /used in query/)
         end
       end
 
       describe :query_should! do
-        it 'should add must clauses to query' do
+        it 'adds should clauses to query' do
           expect(request.query).to be_nil
           
           request.query_should!(Lastic.field(:title).term('test'))
@@ -41,6 +41,16 @@ module Lastic
               Lastic.field(:title).term('test'),
               Lastic.field(:year).range(gte: 2014, lte: 2015)
             ])
+
+          request.query_should!(Lastic.field(:name).term('Vonnegut'), Lastic.field(:name).term('Heinlein'))
+          expect(request.query).
+            to eq Bool.new(should: [
+              Lastic.field(:title).term('test'),
+              Lastic.field(:year).range(gte: 2014, lte: 2015),
+              Lastic.field(:name).term('Vonnegut'),
+              Lastic.field(:name).term('Heinlein')
+            ])
+          
         end
       end
 

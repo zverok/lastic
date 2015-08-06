@@ -4,27 +4,24 @@ module Lastic
     end
 
     # Quering ----------------------------------------------------------
-    def query_must!(clause)
-      clause = Clauses.coerce(clause, :query)
-        
-      @query = if @query
-        @query.must(clause)
-      else
-        clause # not creating additional Bool wrapper
-      end
+    def query_must!(*clauses)
+      @query = [@query, *clauses.map{|c| Clauses.coerce(c, :query)}].
+        compact.inject(&:must)
+
       self
     end
 
     alias_method :query!, :query_must!
 
-    def query_should!(clause)
-      clause = Clauses.coerce(clause, :query)
-      
-      @query = if @query
-        @query.should(clause)
+    def query_should!(*clauses)
+      clauses = [@query, *clauses.map{|c| Clauses.coerce(c, :query)}].compact
+
+      @query = if clauses.count == 1
+        clauses.first.should # always marks itself as a should
       else
-        clause.should
+        clauses.inject(:should)
       end
+
       self
     end
 
@@ -33,27 +30,19 @@ module Lastic
     end
 
     # Filtering --------------------------------------------------------
-    def filter_and!(clause)
-      clause = Clauses.coerce(clause, :filter)
+    def filter_and!(*clauses)
+      @filter = [@filter, *clauses.map{|c| Clauses.coerce(c, :filter)}].
+        compact.inject(&:and)
 
-      @filter = if @filter
-        @filter.and(clause)
-      else
-        clause
-      end
       self
     end
 
     alias_method :filter!, :filter_and!
 
-    def filter_or!(clause)
-      clause = Clauses.coerce(clause, :filter)
-      
-      @filter = if @filter
-        @filter.or(clause)
-      else
-        clause
-      end
+    def filter_or!(*clauses)
+      @filter = [@filter, *clauses.map{|c| Clauses.coerce(c, :filter)}].
+        compact.inject(&:or)
+
       self
     end
 
@@ -77,17 +66,25 @@ module Lastic
       dup.query!(*arg)
     end
 
-    def query_must(clause)
-      dup.query_must!(clause)
+    def query_must(*clauses)
+      dup.query_must!(*clauses)
     end
 
-    def query_should(clause)
-      dup.query_should!(clause)
+    def query_should(*clauses)
+      dup.query_should!(*clauses)
     end
 
     def filter(*arg)
       return @filter if arg.empty?
       dup.filter!(*arg)
+    end
+
+    def filter_and(*clauses)
+      dup.filter_and!(*clauses)
+    end
+
+    def filter_or(*clauses)
+      dup.filter_or!(*clauses)
     end
 
     def sort(*arg)
