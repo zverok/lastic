@@ -42,6 +42,9 @@ module Lastic
 
       expect(clause.filter(clause2).to_h).
         to eq('filtered' => {'query' => clause.to_h, 'filter' => clause2.to_h})
+
+      expect(Clauses::Filtered.new(filter: clause2).to_h).
+        to eq('filtered' => {'filter' => clause2.to_h})
     end
 
     it 'converts multi-field clauses' do

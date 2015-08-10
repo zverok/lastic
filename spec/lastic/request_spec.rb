@@ -185,6 +185,18 @@ module Lastic
         its(:to_h){should == {'query' => subject.query.to_h}}
       end
 
+      context 'filtered only' do
+        subject{request.filter(title: 'Test')}
+
+        its(:to_h){should == {
+          'query' => {
+            'filtered' => {
+              'filter' => subject.filter.to_h
+            }
+          }
+        }}
+      end
+
       context 'deep nesting' do
         subject{
           request.query(

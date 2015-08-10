@@ -133,9 +133,9 @@ module Lastic
 
       def to_h(context = {})
         {'filtered' => {
-          'query' => query_clause.to_h(context.merge(mode: :query)),
-          'filter' => filter_clause.to_h(context.merge(mode: :filter))
-          }
+          'query' => query_clause && query_clause.to_h(context.merge(mode: :query)),
+          'filter' => filter_clause && filter_clause.to_h(context.merge(mode: :filter))
+          }.reject{|k, v| !v}
         }
       end
     end

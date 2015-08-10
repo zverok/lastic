@@ -3,6 +3,10 @@ module Lastic
     def initialize
     end
 
+    def ==(other)
+      other.is_a?(Request) && other.to_h == to_h
+    end
+
     # Quering ----------------------------------------------------------
     def query_must!(*clauses)
       @query = [@query, *clauses.map{|c| Clauses.coerce(c, :query)}].
@@ -47,12 +51,15 @@ module Lastic
     end
 
     # Ordering ---------------------------------------------------------
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html
+    # sort(:me, you: :desc, Lastic.field(:price).desc.avg)
     def sort!(*fields)
       @sort = fields.map(&SortableField.method(:coerce))
       self
     end
 
     # Limiting ---------------------------------------------------------
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-from-size.html
     def from!(from, size = nil)
       from, size = from.begin, (from.end-from.begin) if from.is_a?(::Range)
       @from = from
