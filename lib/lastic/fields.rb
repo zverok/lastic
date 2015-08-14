@@ -75,7 +75,7 @@ module Lastic
   class SortableField
     attr_reader :field, :options
 
-    using StringifyKeys
+    using StringifySymbolize
     
     def initialize(field, **options)
       @field, @options = field, options
