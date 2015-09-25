@@ -12,6 +12,9 @@ pun on Elastic.
 Look and feel:
 
 ```ruby
+require 'lastic'
+include Lastic
+
 Lastic.request.
   query_string('Pride AND prejustice').
   filter(field('author.name').nested => 'Jane Osten').
@@ -28,7 +31,7 @@ Lastic.request.
 * Lastic tries to be a thin wrapper;
 * It also adds convinience tricks and shortcuts here and there (fun we love);
 * It tries to help creating error-prone queries, correct by design;
-* It tries to be query creation chainable, so you can split it to several
+* It tries to make query creation chainable, so you can split it to several
   aspects, and say `request.query(myfield: 'value)` here and add
   `request.query(otherfield: 'othervalue')` there.
 
@@ -71,10 +74,10 @@ TODO: more to write here!
 
 * Most of popular ElasticSearch queries, filters, their options and request
   variants should be implemented;
-* There expected to be Lastic::Dataset, which is basically performable
+* There expected to be `Lastic::Search`, which is basically performable
   request; so, Lastic will became simplistic yet powerful ElasticSearch
   (read-only) client;
-* Lastic::Dataset (and may be Lastic::Request with right setup) will use
+* `Lastic::Search` (and may be `Lastic::Request` with right setup) will use
   index's mapping to introspect types and fields, intellectually guess
   which fields should be nested and how, alert on non-existing (mistyped)
   fields and so on.
