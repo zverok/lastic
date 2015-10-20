@@ -31,10 +31,6 @@ module Lastic
         super && fields == other.fields
       end
 
-      def to_h
-        {name => {'fields' => fields.to_a, 'query' => string}.reject{|k, v| v.empty?}}
-      end
-
       private
 
       def coerce_fields(fields)
@@ -81,6 +77,9 @@ module Lastic
     end
 
     class Wildcard < Binary
+      def filterable?
+        false
+      end
     end
 
     class Regexp < Binary
@@ -90,6 +89,18 @@ module Lastic
     end
 
     class Exists < Simple
+      def queriable?
+        false
+      end
+
+      protected
+      
+      def internal_to_h(context = {})
+        {'field' => field.to_s}
+      end
+    end
+
+    class Missing < Simple
       def queriable?
         false
       end
@@ -147,6 +158,13 @@ module Lastic
       def filterable?
         false
       end
+
+      def to_h(context = {})
+        {name => {
+          'fields' => fields.to_a,
+          'query' => string}.merge(options).reject{|k, v| v.empty?}
+        }
+      end
     end
     
     class QueryString < QueryStringBase
@@ -178,6 +196,10 @@ module Lastic
 
       def exists
         Exists.new(self)
+      end
+
+      def missing
+        Missing.new(self)
       end
 
       def query_string(str, **options)

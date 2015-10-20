@@ -5,8 +5,15 @@ module Lastic
     class Response
       attr_reader :raw
       
-      def initialize(text)
-        @raw = Hashie::Mash.new(JSON.parse(text))
+      def initialize(raw)
+        @raw = case raw
+        when String
+          Hashie::Mash.new(JSON.parse(raw))
+        when Hash
+          Hashie::Mash.new(raw)
+        else
+          fail ArgumentError, "Can't initialize Response with #{raw.class}"
+        end
       end
 
       def count

@@ -29,6 +29,13 @@ module Lastic
       self
     end
 
+    def query_must_not!(*clauses)
+      clauses = clauses.map{|c| Clauses.coerce(c, :query)}
+      @query = Clauses::Bool.new(must: [@query].compact, must_not: clauses)
+
+      self
+    end
+
     def raw_query
       @query
     end
@@ -41,7 +48,7 @@ module Lastic
       self
     end
 
-    alias_method :filter!, :filter_and!
+    #alias_method :filter!, :filter_and!
 
     def filter_or!(*clauses)
       @filter = [@filter, *clauses.map{|c| Clauses.coerce(c, :filter)}].
@@ -49,6 +56,29 @@ module Lastic
 
       self
     end
+
+    def filter_must!(*clauses)
+      @filter = [@filter, *clauses.map{|c| Clauses.coerce(c, :filter)}].
+        compact.inject(&:must)
+
+      self
+    end
+
+    def filter_should!(*clauses)
+      clauses = clauses.map{|c| Clauses.coerce(c, :filter)}
+      @filter = Clauses::Bool.new(must: [@filter].compact, should: clauses)
+
+      self
+    end
+
+    def filter_must_not!(*clauses)
+      clauses = clauses.map{|c| Clauses.coerce(c, :filter)}
+      @filter = Clauses::Bool.new(must: [@filter].compact, must_not: clauses)
+
+      self
+    end
+
+    alias_method :filter!, :filter_must!
 
     # Ordering ---------------------------------------------------------
     # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html
@@ -81,6 +111,10 @@ module Lastic
       dup.query_should!(*clauses)
     end
 
+    def query_must_not(*clauses)
+      dup.query_must_not!(*clauses)
+    end
+
     def filter(*arg)
       return @filter if arg.empty?
       dup.filter!(*arg)
@@ -92,6 +126,14 @@ module Lastic
 
     def filter_or(*clauses)
       dup.filter_or!(*clauses)
+    end
+
+    def filter_should(*clauses)
+      dup.filter_should!(*clauses)
+    end
+
+    def filter_must_not(*clauses)
+      dup.filter_must_not!(*clauses)
     end
 
     def sort(*arg)
