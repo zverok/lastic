@@ -1,17 +1,11 @@
 module Lastic
   class Search < Request
-    attr_reader :host, :index, :type, :options
-
-    attr_reader :client
+    attr_reader :client, :index, :type
     
-    def initialize(host: nil, index: nil, type: nil, **options)
+    def initialize(client, index: nil, type: nil)
       require_es!
       
-      @host, @index, @type, @options = host, index, type, options
-
-      @client = Elasticsearch::Client.new(
-        {host: host}.merge(options)
-      )
+      @client, @index, @type = client, index, type
     end
 
     def perform
