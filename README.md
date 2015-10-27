@@ -70,10 +70,41 @@ TODO: more to write here!
 
 ## Usage
 
+**HIGHLY INCOMPLETE**
+
+### Aggregations
+
+```ruby
+# ...
+# simple
+request.aggs(platforms: Aggs.terms(field: 'platform.id'))
+
+# can be unnamed: Lastic generates the name for you
+request.aggs(Aggs.terms(field: 'platform.id'))
+
+# with sub-aggregations:
+request.aggs(platforms: Aggs.terms(field: 'platform.id').aggs(sample: Aggs.top_hits(size: 1)))
+
+# can be chained:
+request.
+  aggs(Aggs.terms(field: 'platform.id')).
+  aggs(Aggs.avg(field: 'weight')
+# now request have two separate aggregations
+
+# any aggregation can be updated:
+request = request.aggs(platforms: Aggs.terms(field: 'platform.id'))
+request.aggs[:platforms].aggs!(sample: Aggs.top_hits(size: 1))
+# now "platforms" aggregation have "sample" sub-aggregation
+
+# possible further improvements: specialized constructors for common aggs:
+request.aggs(platforms: Aggs.terms('platform.id')) # without {field: ...}
+```
+
 ## Roadmap
 
 * Most of popular ElasticSearch queries, filters, their options and request
   variants should be implemented;
+* Aggregations should be implemented;
 * There expected to be `Lastic::Search`, which is basically performable
   request; so, Lastic will became simplistic yet powerful ElasticSearch
   (read-only) client;
