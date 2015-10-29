@@ -33,7 +33,7 @@ module Lastic
       def aggs!(*as)
         ahash = as.last.is_a?(Hash) ? as.pop : {}
 
-        # FIXME: to naive anti-collision naming
+        # FIXME: too naive anti-collision naming
         ahash.merge!(as.map{|a| ["#{a.name}_#{rand(100)}", a]}.to_h)
         
         ahash.each do |k, v|

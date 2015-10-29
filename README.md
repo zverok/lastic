@@ -28,7 +28,8 @@ Lastic.request.
 ## Design goals and features
 
 * Lastic tries to look _natural without explanation_;
-* Lastic tries to be a thin wrapper;
+* Lastic tries to be a thin wrapper, with terminological equality with
+  ES API and clean distinction of keywords from params;
 * It also adds convinience tricks and shortcuts here and there (fun we love);
 * It tries to help creating error-prone queries, correct by design;
 * It tries to make query creation chainable, so you can split it to several
