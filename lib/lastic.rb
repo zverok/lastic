@@ -3,7 +3,7 @@ require 'json'
 require_relative 'lastic/refinements'
 
 module Lastic
-  %w[clauses fields query request search].each do |mod|
+  %w[clauses fields query aggregations request search].each do |mod|
     require_relative "lastic/#{mod}"
   end
 
