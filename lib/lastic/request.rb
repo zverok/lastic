@@ -1,6 +1,7 @@
 module Lastic
   class Request
     def initialize
+      @aggs = Hashie::Mash.new
     end
 
     def ==(other)
@@ -89,13 +90,32 @@ module Lastic
     end
 
     # Limiting ---------------------------------------------------------
-    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-from-size.html
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
     def from!(from, size = nil)
       from, size = from.begin, (from.end-from.begin) if from.is_a?(::Range)
       @from = from
       @size = size if size
       self
     end
+
+    # Aggregations -----------------------------------------------------
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
+    def aggregations!(*as)
+      ahash = as.last.is_a?(Hash) ? as.pop : {}
+
+      # FIXME: too naive anti-collision naming
+      ahash.merge!(as.map{|a| ["#{a.name}_#{rand(100)}", a]}.to_h)
+      
+      ahash.each do |k, v|
+        v.kind_of?(Aggs::Base) or
+          fail(TypeError, "#{k}: not suitable type for aggregation: #{v.class}")
+      end
+
+      @aggs.merge!(ahash)
+      self
+    end
+
+    alias_method :aggs!, :aggregations!
 
     # Non-bang versions ------------------------------------------------
     def query(*arg)
@@ -151,13 +171,21 @@ module Lastic
       dup.size!(*arg)
     end
 
+    def aggregations(*arg)
+      return @aggs if arg.empty?
+      dup.aggregations!(*arg)
+    end
+
+    alias_method :aggs, :aggregations
+
     # Dumping ----------------------------------------------------------
     def to_h
       {
         'query' => (query ? query.to_h : {'match_all' => {}}),
         'sort' => sort && sort.map(&:to_h),
         'from' => from,
-        'size' => size
+        'size' => size,
+        'aggregations' => aggregations.map{|k, v| [k, v.to_h]}.to_h
       }.reject{|k, v| v.nil? || v.respond_to?(:empty?) && v.empty?}
     end
 

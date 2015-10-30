@@ -6,6 +6,8 @@ module Lastic
       require_es!
       
       @client, @index, @type = client, index, type
+
+      super()
     end
 
     def perform

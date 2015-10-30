@@ -136,6 +136,15 @@ module Lastic
           expect(request.size).to eq 20
         end
       end
+
+      describe :aggs! do
+        it 'adds aggregations' do
+          expect(request.aggs).to be_empty
+          request.aggs!(platforms: Aggs.terms(field: 'platform.id'))
+          expect(request.aggs.size).to eq 1
+          expect(request.aggs[:platforms]).to be_kind_of(Aggs::Base)
+        end
+      end
     end
 
     describe 'non-bang methods' do
@@ -192,6 +201,19 @@ module Lastic
           'query' => {
             'filtered' => {
               'filter' => subject.filter.to_h
+            }
+          }
+        }}
+      end
+
+      context 'aggregations' do
+        subject{request.aggs(platforms: Aggs.terms(field: 'platform.id'))}
+
+        its(:to_h){should == {
+          'query' => {'match_all' => {}},
+          'aggregations' => {
+            'platforms' => {
+              'terms' => {'field' => 'platform.id'}
             }
           }
         }}
