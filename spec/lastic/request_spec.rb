@@ -1,6 +1,6 @@
 module Lastic
   include Clauses
-  
+
   describe Request do
     describe 'updating' do
       subject(:request){Request.new}
@@ -8,7 +8,7 @@ module Lastic
       describe :query_must! do
         it 'adds must clauses to query' do
           expect(request.query).to be_nil
-          
+
           request.query_must!(Lastic.field(:title).term('test'))
           expect(request.query).
             to eq Lastic.field(:title).term('test')
@@ -20,7 +20,7 @@ module Lastic
               Lastic.field(:year).range(gte: 2014, lte: 2015)
             ])
         end
-        
+
         it 'raises on non-queriable clause' do
           expect{request.query_must!(Lastic.field(:title).exists)}.
             to raise_error(ArgumentError, /used in query/)
@@ -30,7 +30,7 @@ module Lastic
       describe :query_should! do
         it 'adds should clauses to query' do
           expect(request.query).to be_nil
-          
+
           request.query_should!(Lastic.field(:title).term('test'))
           expect(request.query).
             to eq Bool.new(should: [Lastic.field(:title).term('test')])
@@ -50,7 +50,7 @@ module Lastic
               Lastic.field(:name).term('Vonnegut'),
               Lastic.field(:name).term('Heinlein')
             ])
-          
+
         end
       end
 
@@ -137,6 +137,14 @@ module Lastic
         end
       end
 
+      describe :size! do
+        it 'updates size' do
+          expect(request.size).to be_nil
+          request.size!(100)
+          expect(request.size).to eq 100
+        end
+      end
+
       describe :aggs! do
         it 'adds aggregations' do
           expect(request.aggs).to be_empty
@@ -160,11 +168,12 @@ module Lastic
 
       describe 'initial' do
         subject{initial}
-        
+
         its(:query){should be_nil}
         its(:filter){should be_nil}
         its(:sort){should be_nil}
         its(:from){should be_nil}
+        its(:size){should be_nil}
       end
 
       describe 'produced' do
@@ -289,6 +298,14 @@ module Lastic
           'query' => {'match_all' => {}},
           'from' => 10,
           'size' => 20
+        }}
+      end
+
+      context 'size' do
+        subject{request.size(100)}
+        its(:to_h){should == {
+          'query' => {'match_all' => {}},
+          'size' => 100
         }}
       end
     end

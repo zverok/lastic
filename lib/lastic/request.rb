@@ -90,11 +90,16 @@ module Lastic
     end
 
     # Limiting ---------------------------------------------------------
-    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
+    # https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-from-size.html
     def from!(from, size = nil)
       from, size = from.begin, (from.end-from.begin) if from.is_a?(::Range)
       @from = from
       @size = size if size
+      self
+    end
+
+    def size!(size)
+      @size = size
       self
     end
 
@@ -105,7 +110,7 @@ module Lastic
 
       # FIXME: too naive anti-collision naming
       ahash.merge!(as.map{|a| ["#{a.name}_#{rand(100)}", a]}.to_h)
-      
+
       ahash.each do |k, v|
         v.kind_of?(Aggs::Base) or
           fail(TypeError, "#{k}: not suitable type for aggregation: #{v.class}")
